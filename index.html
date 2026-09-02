@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sant Sales & Service — Invoice</title>
+<meta name="theme-color" content="#12142B">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12142B; --ink-2:#22254A; --ink-soft:#3A3D66;
+  --paper:#F2F3F9; --surface:#FFFFFF; --surface-2:#F6F7FC;
+  --line:#E7E8F3; --line-strong:#D8DAEA;
+  --text:#181A33; --text-dim:#6D7089; --text-faint:#9A9CB3;
+  --accent:#E3A23D; --accent-deep:#B87A1E; --accent-soft:#FBF0DA;
+  --green:#1FA971; --green-soft:#E4F7EE;
+  --red:#E5493E; --red-soft:#FCEAE8;
+  --radius-lg:20px; --radius-md:14px; --radius-sm:10px;
+  --shadow-xs:0 1px 2px rgba(18,20,50,.05);
+  --shadow-sm:0 2px 8px rgba(18,20,50,.06), 0 1px 2px rgba(18,20,50,.04);
+  --shadow-md:0 10px 28px -10px rgba(18,20,50,.22);
+  --shadow-lg:0 24px 48px -16px rgba(18,20,50,.34);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0; background:var(--paper); color:var(--text); font-family:'Inter',system-ui,sans-serif; height:100%; -webkit-font-smoothing:antialiased;}
+h1,h2,h3,.display{font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:0.01em;}
+.mono{font-family:'JetBrains Mono',monospace;}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit; font-size:15px; transition:border-color .18s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease);}
+@keyframes fadeSlideIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+@keyframes popIn{from{opacity:0; transform:scale(.96);} to{opacity:1; transform:scale(1);}}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulseDot{0%,100%{opacity:1;} 50%{opacity:.35;}}
+
+#app{max-width:520px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; background:var(--paper); position:relative;}
+
+/* Top bar */
+.topbar{background:linear-gradient(150deg,var(--ink),var(--ink-2) 65%); color:#fff; padding:16px 18px 26px; position:sticky; top:0; z-index:20; border-radius:0 0 26px 26px; box-shadow:var(--shadow-md);}
+.topbar .eyebrow{font-size:10.5px; text-transform:uppercase; letter-spacing:0.14em; color:rgba(255,255,255,.5); font-weight:700; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.topbar h1{margin:4px 0 0; font-size:25px; line-height:1.05; letter-spacing:0.005em;}
+.topbar .stripe{display:none;}
+
+/* Views */
+.view{display:none; flex:1; padding:16px 14px 108px; overflow-y:auto; margin-top:-12px;}
+.view.active{display:block; animation:fadeSlideIn .32s var(--ease);}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg); padding:16px; margin-bottom:12px; box-shadow:var(--shadow-sm);}
+.card h3{margin:0 0 13px; font-size:11.5px; font-family:'Inter',sans-serif; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em;}
+
+.field{margin-bottom:11px;}
+.field label{display:block; font-size:11px; color:var(--text-faint); margin-bottom:5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;}
+.field input, .field select{width:100%; padding:11px 12px; border:1.5px solid transparent; border-radius:var(--radius-sm); background:var(--surface-2); color:var(--text);}
+.field input:focus, .field select:focus{outline:none; background:#fff; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft);}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+/* search */
+.searchbar{display:flex; gap:8px; margin-bottom:12px;}
+.searchbar input{flex:1; min-width:0; padding:12px 14px; border-radius:var(--radius-md); border:1.5px solid var(--line); background:var(--surface); box-shadow:var(--shadow-xs); font-size:14px;}
+.searchbar input::placeholder{font-size:13.5px; color:var(--text-faint);}
+.searchbar input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft);}
+.searchbar select{padding:12px 8px; border-radius:var(--radius-md); border:1.5px solid var(--line); background:var(--surface); max-width:130px;}
+
+.result-count{font-size:11.5px; color:var(--text-faint); margin:2px 2px 10px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;}
+
+/* price master list */
+.part-row{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--line); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:8px; box-shadow:var(--shadow-xs); transition:box-shadow .2s var(--ease), transform .15s var(--ease), border-color .2s var(--ease); animation:fadeSlideIn .25s var(--ease);}
+.part-row:active{transform:scale(0.99);}
+.part-row:has(.price-input.overridden){border-left-color:var(--accent);}
+.part-row .top{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+.part-code{font-size:11.5px; color:var(--accent-deep); font-weight:700; letter-spacing:0.01em;}
+.part-cat{font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.05em; font-weight:600;}
+.part-desc{font-size:14.5px; font-weight:600; margin:4px 0 10px; color:var(--text); line-height:1.3;}
+.part-prices{display:flex; align-items:center; gap:10px; font-size:13px;}
+.part-prices .lbl{color:var(--text-faint); font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;}
+.price-input{width:80px; padding:7px 8px; border:1.5px solid var(--line); border-radius:8px; text-align:right; background:var(--surface-2);}
+.price-input.overridden{border-color:var(--accent); background:var(--accent-soft); font-weight:700;}
+.revert-btn{background:none; border:none; color:var(--text-faint); font-size:16px; padding:2px 4px;}
+.landing-note{font-size:11px; color:var(--text-faint); margin-left:auto;}
+
+.loadmore{width:100%; padding:12px; border:1.5px dashed var(--line-strong); background:transparent; border-radius:var(--radius-md); color:var(--ink); font-weight:700; font-size:13.5px;}
+
+/* buttons */
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:12px 16px; border-radius:var(--radius-sm); border:none; font-weight:700; font-size:14.5px; transition:transform .12s var(--ease), box-shadow .18s var(--ease), background .18s var(--ease), opacity .18s var(--ease);}
+.btn:active{transform:scale(0.96);}
+.btn-primary{background:var(--ink); color:#fff; box-shadow:0 4px 14px rgba(18,20,43,0.28);}
+.btn-amber{background:var(--accent); color:#2B1B00; box-shadow:0 4px 14px rgba(227,162,61,0.32);}
+.btn-outline{background:var(--surface-2); border:1.5px solid var(--line); color:var(--ink);}
+.btn-outline:hover{border-color:var(--ink-soft); background:#fff;}
+.btn-danger{background:var(--red-soft); border:1.5px solid transparent; color:var(--red);}
+.btn-danger:hover{background:#FBDBD8;}
+.btn-block{width:100%;}
+.btn-row{display:flex; gap:8px;}
+.btn[disabled]{opacity:.5; pointer-events:none;}
+
+/* invoice items */
+.item-card{border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; margin-bottom:9px; position:relative; background:var(--surface-2); animation:fadeSlideIn .22s var(--ease); box-shadow:var(--shadow-xs);}
+.item-card .idx{position:absolute; top:-9px; left:10px; background:var(--ink); color:#fff; font-size:11px; font-weight:700; padding:2px 9px; border-radius:20px;}
+.item-card .remove{position:absolute; top:2px; right:2px; background:none; border:none; color:var(--red); font-size:20px; line-height:1; width:38px; height:38px; display:flex; align-items:center; justify-content:center; z-index:5; cursor:pointer; touch-action:manipulation;}
+.autocomplete{position:relative;}
+.ac-list{position:absolute; z-index:30; left:0; right:0; top:100%; background:#fff; border:1.5px solid var(--line); border-radius:var(--radius-sm); max-height:220px; overflow-y:auto; box-shadow:var(--shadow-lg); margin-top:4px;}
+.ac-item{padding:10px 11px; border-bottom:1px solid var(--line); font-size:13.5px;}
+.ac-item:last-child{border-bottom:none;}
+.ac-item .c{font-size:11px; color:var(--accent-deep); font-weight:700;}
+.item-grid{display:grid; grid-template-columns:1fr 70px 90px; gap:8px; margin-top:9px;}
+.item-grid label{font-size:10px; color:var(--text-faint); text-transform:uppercase; font-weight:700; letter-spacing:0.03em;}
+.item-line-total{text-align:right; font-size:12.5px; color:var(--text-dim); margin-top:7px;}
+.item-line-total b{color:var(--text); font-size:14.5px;}
+
+/* totals */
+.totals{border-top:1.5px solid var(--line); margin-top:12px; padding-top:12px;}
+.totals .r{display:flex; justify-content:space-between; font-size:13.5px; padding:3.5px 0; color:var(--text-dim);}
+.totals .grand{font-size:21px; font-weight:800; color:var(--ink); border-top:1.5px dashed var(--line-strong); margin-top:8px; padding-top:10px; font-family:'Barlow Condensed',sans-serif;}
+
+/* bottom nav — floating pill */
+.tabbar{position:fixed; bottom:calc(10px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 20px); max-width:500px; background:rgba(255,255,255,0.94); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); display:flex; z-index:40; padding:5px; border-radius:20px; box-shadow:var(--shadow-lg); border:1px solid rgba(255,255,255,.6); gap:2px;}
+.tab{flex:1; background:none; border:none; color:var(--text-faint); padding:8px 2px 7px; font-size:10px; font-weight:700; display:flex; flex-direction:column; align-items:center; gap:3px; border-radius:15px; transition:color .18s var(--ease), transform .12s var(--ease), background .2s var(--ease);}
+.tab .ic{font-size:17px; transition:transform .18s var(--ease);}
+.tab.active{color:var(--ink); background:var(--accent-soft);}
+.tab.active .ic{transform:translateY(-1px) scale(1.06);}
+.tab:active{transform:scale(0.93);}
+
+.empty{text-align:center; padding:48px 20px; color:var(--text-faint);}
+.empty .ic{font-size:36px; margin-bottom:10px; opacity:.6;}
+
+.badge{display:inline-block; background:var(--accent); color:#2B1B00; font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px;}
+
+/* invoice preview / print — kept traditional/print-appropriate */
+.paper{background:#fff; border:1px solid var(--line); border-radius:6px; padding:16px; font-size:12.5px;}
+.paper .ph{display:flex; align-items:center; justify-content:space-between; gap:8px; text-align:center; font-family:'Barlow Condensed'; font-weight:700; font-size:15px; letter-spacing:0.08em; border-bottom:2px solid var(--ink); padding-bottom:8px; margin-bottom:8px;}
+.paper .ph .ph-title{flex:1; text-align:center;}
+.paper .ph-logo{height:30px; max-width:92px; object-fit:contain; flex-shrink:0;}
+.paper table{width:100%; border-collapse:collapse; margin:8px 0; font-size:11.5px;}
+.paper th, .paper td{border:1px solid #999; padding:4px 5px; text-align:left;}
+.paper th{background:var(--surface-2);}
+.paper .num{text-align:right;}
+.paper .totalrow td{font-weight:700;}
+.paper{position:relative; overflow:hidden;}
+.paper-content{position:relative; z-index:1;}
+
+.toast{position:fixed; bottom:96px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:11px 20px; border-radius:30px; font-size:13.5px; font-weight:600; z-index:60; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; box-shadow:var(--shadow-md);}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+
+.hist-filter{display:flex; gap:4px; margin-bottom:12px; background:var(--surface-2); padding:4px; border-radius:var(--radius-md); border:1px solid var(--line);}
+.hist-filter-btn{flex:1; background:none; border:none; color:var(--text-dim); padding:9px 4px; font-size:12.5px; font-weight:700; border-radius:10px; transition:background .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease);}
+.hist-filter-btn.active{background:var(--surface); color:var(--ink); box-shadow:var(--shadow-xs);}
+.hist-badge{display:inline-block; font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:20px; letter-spacing:0.03em; margin-left:6px; vertical-align:middle; text-transform:uppercase;}
+.hist-badge.gst{background:var(--accent-soft); color:var(--accent-deep);}
+.hist-badge.normal{background:var(--surface-2); color:var(--text-dim); border:1px solid var(--line);}
+.hist-row{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md); padding:13px 14px; margin-bottom:9px; box-shadow:var(--shadow-xs);}
+.hist-row .top{display:flex; justify-content:space-between; font-weight:700; color:var(--ink); font-size:14px;}
+.hist-row .sub{font-size:12.5px; color:var(--text-dim); margin-top:3px; font-weight:500;}
+.hist-row .amt{font-size:18px; font-weight:800; margin-top:8px; color:var(--ink); font-family:'Barlow Condensed',sans-serif;}
+.hist-actions{display:flex; gap:6px; margin-top:10px;}
+.hist-actions button{flex:1; padding:8px; font-size:12.5px; border-radius:9px;}
+
+/* review / recheck modal */
+.review-overlay{display:none; position:fixed; inset:0; background:rgba(18,20,43,0.6); backdrop-filter:blur(2px); z-index:80; align-items:flex-end; justify-content:center;}
+.review-card{background:#fff; width:100%; max-width:520px; max-height:82vh; overflow-y:auto; border-radius:22px 22px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); box-shadow:var(--shadow-lg);}
+.review-card h3{margin:0 0 2px; color:var(--ink); font-size:20px;}
+.review-list{max-height:45vh; overflow-y:auto;}
+.review-row{border-bottom:1px solid var(--line); padding:10px 0;}
+.review-desc{font-size:13.5px; font-weight:600; color:var(--text);}
+.review-calc{font-size:12.5px; color:var(--text-dim); margin-top:3px;}
+.review-rate{background:var(--accent-soft); color:var(--accent-deep); font-weight:700; padding:1px 7px; border-radius:6px;}
+.review-grand{display:flex; justify-content:space-between; font-size:17px; font-weight:800; color:var(--ink); border-top:1.5px solid var(--line-strong); margin-top:12px; padding-top:12px;}
+
+/* PDF in-app preview */
+.pdfview-overlay{display:none; position:fixed; inset:0; background:#fff; z-index:90; flex-direction:column;}
+.pdfview-header{display:flex; align-items:center; justify-content:space-between; background:var(--ink); color:#fff; padding:13px 15px; font-weight:700; font-size:15px;}
+.btn-pdfview{background:var(--accent); color:#2B1B00; border:none; padding:9px 15px; font-size:13px; font-weight:700; border-radius:10px;}
+.pdfview-frame{flex:1; width:100%; overflow-y:auto; background:var(--paper); padding:14px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="topbar">
+    <div class="eyebrow">
+      <span id="topEyebrow">SPARE PARTS &amp; BILLING</span>
+    </div>
+    <h1 id="topTitle">Price Master</h1>
+    <div class="stripe"></div>
+  </div>
+
+  <!-- PRICE MASTER -->
+  <div class="view active" id="view-master">
+    <div class="searchbar">
+      <input type="text" id="searchInput" placeholder="Search parts…">
+      <select id="categoryFilter"><option value="">All Categories</option></select>
+    </div>
+    <div class="result-count" id="resultCount"></div>
+    <div id="partList"></div>
+    <button class="loadmore" id="loadMoreBtn" style="display:none;">Show more</button>
+    <button class="btn btn-outline btn-block" style="margin-top:10px;" id="addPartBtn">+ Add New Part</button>
+  </div>
+
+  <!-- NEW INVOICE -->
+  <div class="view" id="view-invoice">
+    <div class="card">
+      <h3>Billing To</h3>
+      <div class="field"><label>Customer / Company Name</label><input id="buyerName" placeholder="e.g. ABC Enterprises"></div>
+      <div class="field"><label>Mobile Number</label><input id="buyerMobile" type="tel" placeholder="e.g. 9876543210" maxlength="15"></div>
+      <div class="field"><label>Address</label><input id="buyerAddress" placeholder="Address"></div>
+      <div class="row2">
+        <div class="field"><label>GSTIN</label><input id="buyerGstin" placeholder="07AABCXXXXXP1ZD"></div>
+        <div class="field"><label>State Code</label><input id="buyerState" placeholder="06" maxlength="2"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Invoice No.</label><input id="invoiceNo"></div>
+        <div class="field"><label>Date</label><input id="invoiceDate" type="date"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Items</h3>
+      <div id="itemsContainer"></div>
+      <button class="btn btn-outline btn-block" id="addItemBtn">+ Add Item</button>
+    </div>
+
+    <div class="card" id="billOptionsCard">
+      <div class="field" id="gstToggleField">
+        <label>Bill Type</label>
+        <select id="gstToggle">
+          <option value="with">With GST</option>
+          <option value="without">Without GST</option>
+        </select>
+      </div>
+      <div class="field" id="discountField"><label>Discount %</label><input id="invoiceDiscount" type="number" step="0.01" min="0" max="100" placeholder="0"></div>
+      <label class="field" style="display:flex; align-items:center; gap:8px; flex-direction:row; cursor:pointer;">
+        <input id="showTermsToggle" type="checkbox" checked style="width:16px; height:16px; margin:0;">
+        <span style="font-weight:600; font-size:13px;">Show warranty/terms note on this bill</span>
+      </label>
+      <div class="totals" id="invoiceTotals"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" style="flex:1" id="printInvoiceBtn">⬇ Download PDF</button>
+      <button class="btn btn-outline" style="flex:1" id="shareInvoiceBtn">📤 Share</button>
+    </div>
+    <div class="btn-row" style="margin-top:8px;">
+      <button class="btn btn-primary btn-block" id="saveInvoiceBtn">Save Invoice</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="view" id="view-history">
+    <div class="card" id="histSummaryCard" style="padding:14px 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div>
+          <div style="font-size:10.5px; color:var(--text-faint); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;" id="histSummaryLabel">This Month</div>
+          <div style="font-size:22px; font-weight:800; color:var(--ink); font-family:'Barlow Condensed',sans-serif;" id="histSummaryAmt">₹0</div>
+        </div>
+        <div style="text-align:right; font-size:12.5px; color:var(--text-dim); font-weight:600;" id="histSummaryCount">0 invoices</div>
+      </div>
+    </div>
+    <div class="searchbar">
+      <input type="text" id="historySearch" placeholder="Search name, mobile, or item…">
+    </div>
+    <div class="hist-filter" id="historyFilter">
+      <button class="hist-filter-btn active" data-filter="all">All</button>
+      <button class="hist-filter-btn" data-filter="normal">Invoice</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="view" id="view-settings">
+    <div class="card">
+      <h3>Company Details</h3>
+      <div class="field"><label>Company Name</label><input id="setCompanyName"></div>
+      <div class="field"><label>Address</label><input id="setAddress"></div>
+      <div class="row2">
+        <div class="field"><label>Contact No.</label><input id="setContact"></div>
+        <div class="field"><label>Email</label><input id="setEmail"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>GSTIN</label><input id="setGstin"></div>
+        <div class="field"><label>State Code</label><input id="setState" maxlength="2"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>PAN No.</label><input id="setPan"></div>
+        <div class="field"><label>GST Rate (%)</label><input id="setGstRate" type="number"></div>
+      </div>
+      <div class="field"><label>Service Center Line (optional, shown below firm name)</label><input id="setServiceCenterLine" placeholder="e.g. Authorised Service Center"></div>
+      <div class="row2">
+        <div class="field"><label>Next Invoice No.</label><input id="setNextNum" type="number"></div>
+      </div>
+      <p style="font-size:11.5px; color:var(--text-dim); margin:-4px 0 12px;">Invoice number format is automatic: <b id="prefixPreview"></b>01 — based on today's date, so you never need to update it.</p>
+      <button class="btn btn-primary btn-block" id="saveSettingsBtn">Save Settings</button>
+    </div>
+
+    <div class="card">
+      <h3>Authorised Signature</h3>
+      <p style="font-size:13px; color:var(--text-dim); margin-top:0;">Upload your signature photo — it will automatically appear at the bottom of every invoice.</p>
+      <div id="signaturePreviewBox" style="display:none; margin-bottom:10px; text-align:center; border:1.5px dashed var(--line); border-radius:8px; padding:10px;">
+        <img id="signaturePreviewImg" style="max-height:70px; max-width:100%;">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" style="flex:1" id="uploadSignBtn">📷 Upload Signature</button>
+        <button class="btn btn-danger" style="flex:1" id="removeSignBtn">Remove</button>
+      </div>
+      <input type="file" id="signFile" accept="image/*" style="display:none;">
+    </div>
+
+    <div class="card">
+      <h3>Data Backup</h3>
+      <p style="font-size:13px; color:var(--text-dim); margin-top:0;">Backup or restore your price edits, invoices, and settings.</p>
+      <div class="btn-row">
+        <button class="btn btn-outline" style="flex:1" id="exportBtn">⬇ Export</button>
+        <button class="btn btn-outline" style="flex:1" id="importBtn">⬆ Import</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" style="display:none;">
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <button class="tab active" data-view="master"><span class="ic">🔧</span>Price Master</button>
+    <button class="tab" id="newInvoiceBtn" data-view="invoice"><span class="ic">🧾</span>Invoice</button>
+    <button class="tab" data-view="history"><span class="ic">📋</span>History</button>
+    <button class="tab" data-view="settings"><span class="ic">⚙️</span>Settings</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="review-overlay" id="addPartModal">
+  <div class="review-card">
+    <h3>Add New Part</h3>
+    <p style="font-size:12.5px; color:var(--text-dim); margin:0 0 12px;">Add a custom part to your price list.</p>
+    <div class="field"><label>Part Code</label><input id="npCode" placeholder="e.g. WM-MX-103"></div>
+    <div class="field"><label>Description</label><input id="npDesc" placeholder="e.g. Wonder Maxie Jar Set"></div>
+    <div class="row2">
+      <div class="field"><label>Category</label><input id="npCat" placeholder="General Item"></div>
+      <div class="field"><label>HSN Code</label><input id="npHsn" placeholder="998396"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Franchisee Basic ₹</label><input id="npFbasic" type="number" step="0.01" placeholder="0"></div>
+      <div class="field"><label>Customer Basic ₹</label><input id="npCbasic" type="number" step="0.01" placeholder="0"></div>
+    </div>
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="btn btn-outline" style="flex:1" id="npCancelBtn">Cancel</button>
+      <button class="btn btn-primary" style="flex:1" id="npSaveBtn">Add Part</button>
+    </div>
+  </div>
+</div>
+
+<div class="review-overlay" id="reviewModal">
+  <div class="review-card">
+    <h3>Recheck Prices</h3>
+    <p style="font-size:12.5px; color:var(--text-dim); margin:0 0 10px;">Please review each item's rate before continuing.</p>
+    <div id="reviewItemList" class="review-list"></div>
+    <div class="review-grand"><span>Total Invoice Value</span><span id="reviewTotal"></span></div>
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="btn btn-outline" style="flex:1" id="reviewCancelBtn">Edit</button>
+      <button class="btn btn-primary" style="flex:1" id="reviewConfirmBtn">Confirm &amp; Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="pdfview-overlay" id="pdfViewModal">
+  <div class="pdfview-header">
+    <span id="pdfViewTitle">Invoice</span>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-pdfview" id="pdfViewShareBtn">📤 Share</button>
+      <button class="btn-pdfview" id="pdfViewCloseBtn">✕ Close</button>
+    </div>
+  </div>
+  <div id="pdfViewFrame" class="pdfview-frame"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* ===================== Storage helpers (fully offline, on-device only) ===================== */
+const LS = {
+  get(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } },
+  set(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+};
+
+const DEFAULT_SIGNATURE = "";
+
+const DEFAULT_SETTINGS = {
+  companyName: '',
+  address: '',
+  contact: '',
+  email: '',
+  gstin: '',
+  stateCode: '',
+  pan: '',
+  gstRate: 18,
+  serviceCenterLine: '',
+  nextNum: 1,
+  signatureImage: DEFAULT_SIGNATURE
+};
+
+function getSignature(){
+  return settings.signatureImage === undefined ? DEFAULT_SIGNATURE : settings.signatureImage;
+}
+
+let settings = LS.get('sss_settings', DEFAULT_SETTINGS);
+let overrides = LS.get('sss_price_overrides', {});     // {code: {fbasic, cbasic}}
+let customParts = LS.get('sss_custom_parts', []);       // [[code,hsn,cat,desc,fbasic,cbasic], ...]
+let invoices = LS.get('sss_invoices', []);
+
+/* ===================== Combined part list ===================== */
+function allParts(){
+  // returns array of {code,hsn,cat,desc,fbasic,cbasic}
+  const base = PRICE_DATA.map(r => {
+    const ov = overrides[r[0]];
+    return { code:r[0], hsn:r[1], cat:r[2], desc:r[3], fbasic: ov?ov.fbasic:r[4], cbasic: ov?ov.cbasic:r[5], custom:false, _orig:r };
+  });
+  const custom = customParts.map(r => ({ code:r[0], hsn:r[1], cat:r[2], desc:r[3], fbasic:r[4], cbasic:r[5], custom:true }));
+  return custom.concat(base);
+}
+let PARTS_CACHE = allParts();
+function refreshParts(){ PARTS_CACHE = allParts(); }
+
+function findPart(code){
+  if(!code) return null;
+  return PARTS_CACHE.find(p => p.code.toLowerCase() === code.toLowerCase()) || null;
+}
+
+function esc(str){
+  return String(str==null?'':str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ===================== Toast ===================== */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ===================== Tab navigation ===================== */
+const titles = { master:['SPARE PARTS & BILLING','Price Master'], invoice:['SPARE PARTS & BILLING','Invoice'], history:['SPARE PARTS & BILLING','Invoice History'], settings:['SPARE PARTS & BILLING','Settings'] };
+let currentViewName = 'master';
+let backPressArmed = false;
+let backPressTimer = null;
+history.replaceState({view:'master', floor:true}, '', location.pathname + location.search);
+history.pushState({view:'master'}, '', location.pathname + location.search);
+
+function switchToView(v, activeBtn, pushState){
+  const modal = document.getElementById('pdfViewModal');
+  if(modal.style.display === 'flex'){ closePdfViewModal(); }
+  if(pushState !== false && v !== currentViewName){
+    history.pushState({view:v}, '', location.pathname + location.search + '#' + v);
+  }
+  currentViewName = v;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  const btn = activeBtn || document.querySelector('.tab[data-view="'+v+'"]');
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('topEyebrow').textContent = titles[v][0];
+  document.getElementById('topTitle').textContent = titles[v][1];
+  if(v==='history') renderHistory();
+  if(v==='settings') loadSettingsForm();
+}
+
+window.addEventListener('popstate', (e)=>{
+  const modal = document.getElementById('pdfViewModal');
+  if(modal.style.display === 'flex'){
+    closePdfViewModal();
+    return;
+  }
+  if(e.state && e.state.floor){
+    if(!backPressArmed){
+      backPressArmed = true;
+      toast('Press back again to exit');
+      history.pushState({view:'master'}, '', location.pathname + location.search);
+      switchToView('master', document.querySelector('.tab[data-view="master"]'), false);
+      clearTimeout(backPressTimer);
+      backPressTimer = setTimeout(()=>{ backPressArmed = false; }, 2000);
+    }
+    // if backPressArmed is already true, do nothing here -> lets the back navigation exit the app
+    return;
+  }
+  const v = (e.state && e.state.view) || 'master';
+  const btn = document.querySelector('.tab[data-view="'+v+'"]');
+  switchToView(v, btn, false);
+});
+
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    switchToView(btn.dataset.view, btn);
+  });
+});
+
+/* ===================== Price Master view ===================== */
+const catFilter = document.getElementById('categoryFilter');
+const cats = [...new Set(PARTS_CACHE.map(p=>p.cat))].sort();
+cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; catFilter.appendChild(o); });
+
+let visibleCount = 40;
+function norm(str){
+  return String(str||'').toLowerCase().replace(/[\s\-_.\/,()]+/g,'');
+}
+function normWords(str){
+  return String(str||'').toLowerCase().replace(/[\-_.\/,()]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function matchesQuery(text, query){
+  const hay = normWords(text);
+  const tokens = normWords(query).split(' ').filter(Boolean);
+  if(tokens.length===0) return true;
+  return tokens.every(tok => hay.includes(tok));
+}
+function matchesSearch(p, q, cat){
+  if(cat && p.cat !== cat) return false;
+  if(!q) return true;
+  return matchesQuery(p.code + ' ' + p.desc, q);
+}
+
+function renderPartList(){
+  const q = document.getElementById('searchInput').value.trim();
+  const cat = catFilter.value;
+  const filtered = PARTS_CACHE.filter(p=>matchesSearch(p,q,cat));
+  const list = document.getElementById('partList');
+  list.innerHTML = '';
+  const show = filtered.slice(0, visibleCount);
+  document.getElementById('resultCount').textContent = filtered.length + ' parts found' + (filtered.length>show.length ? ' (showing ' + show.length + ')':'');
+  show.forEach(p=>{
+    const div = document.createElement('div');
+    div.className = 'part-row';
+    const isOv = !!overrides[p.code];
+    div.innerHTML = `
+      <div class="top">
+        <span class="part-code mono">${esc(p.code)}${p.custom?' <span class=\"badge\">NEW</span>':''}</span>
+        <span class="part-cat">${esc(p.cat)}</span>
+      </div>
+      <div class="part-desc">${esc(p.desc)} <span class="mono" style="color:var(--text-dim); font-weight:400; font-size:11px;">HSN ${esc(p.hsn)}</span></div>
+      <div class="part-prices">
+        <span class="lbl">Franchisee ₹</span>
+        <input type="number" step="0.01" class="price-input ${isOv?'overridden':''}" data-code="${esc(p.code)}" data-field="fbasic" value="${p.fbasic}">
+        <span class="lbl">Customer ₹</span>
+        <input type="number" step="0.01" class="price-input ${isOv?'overridden':''}" data-code="${esc(p.code)}" data-field="cbasic" value="${p.cbasic}">
+        ${(!p.custom && isOv) ? '<button class="revert-btn" data-revert="'+esc(p.code)+'" title="Original rate par wapas jayein">↺</button>' : ''}
+      </div>`;
+    list.appendChild(div);
+  });
+  document.getElementById('loadMoreBtn').style.display = filtered.length>show.length ? 'block':'none';
+}
+
+document.getElementById('searchInput').addEventListener('input', ()=>{ visibleCount=40; renderPartList(); });
+catFilter.addEventListener('change', ()=>{ visibleCount=40; renderPartList(); });
+document.getElementById('loadMoreBtn').addEventListener('click', ()=>{ visibleCount+=60; renderPartList(); });
+
+document.getElementById('partList').addEventListener('change', (e)=>{
+  const inp = e.target.closest('.price-input');
+  if(!inp) return;
+  const code = inp.dataset.code, field = inp.dataset.field, val = parseFloat(inp.value)||0;
+  const custom = customParts.find(r=>r[0]===code);
+  if(custom){
+    custom[field==='fbasic'?4:5] = val;
+    LS.set('sss_custom_parts', customParts);
+  } else {
+    if(!overrides[code]) overrides[code] = {};
+    const orig = PRICE_DATA.find(r=>r[0]===code);
+    overrides[code].fbasic = field==='fbasic' ? val : (overrides[code].fbasic ?? orig[4]);
+    overrides[code].cbasic = field==='cbasic' ? val : (overrides[code].cbasic ?? orig[5]);
+    LS.set('sss_price_overrides', overrides);
+  }
+  refreshParts();
+  renderPartList();
+  toast('Rate updated');
+});
+
+document.getElementById('partList').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-revert]');
+  if(!btn) return;
+  delete overrides[btn.dataset.revert];
+  LS.set('sss_price_overrides', overrides);
+  refreshParts();
+  renderPartList();
+  toast('Original rate restored');
+});
+
+function openAddPartModal(){
+  document.getElementById('npCode').value = '';
+  document.getElementById('npDesc').value = '';
+  document.getElementById('npCat').value = '';
+  document.getElementById('npHsn').value = '998396';
+  document.getElementById('npFbasic').value = '';
+  document.getElementById('npCbasic').value = '';
+  document.getElementById('addPartModal').style.display = 'flex';
+  setTimeout(()=>document.getElementById('npCode').focus(), 80);
+}
+function closeAddPartModal(){
+  document.getElementById('addPartModal').style.display = 'none';
+}
+document.getElementById('addPartBtn').addEventListener('click', openAddPartModal);
+document.getElementById('npCancelBtn').addEventListener('click', closeAddPartModal);
+document.getElementById('addPartModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'addPartModal') closeAddPartModal();
+});
+document.getElementById('npSaveBtn').addEventListener('click', ()=>{
+  const code = document.getElementById('npCode').value.trim();
+  const desc = document.getElementById('npDesc').value.trim();
+  if(!code){ toast('⚠ Please enter a part code'); document.getElementById('npCode').focus(); return; }
+  if(!desc){ toast('⚠ Please enter a description'); document.getElementById('npDesc').focus(); return; }
+  if(findPart(code)){ toast('⚠ This code already exists'); document.getElementById('npCode').focus(); return; }
+  const cat = document.getElementById('npCat').value.trim() || 'General Item';
+  const hsn = document.getElementById('npHsn').value.trim() || '998396';
+  const fbasic = parseFloat(document.getElementById('npFbasic').value) || 0;
+  const cbasic = parseFloat(document.getElementById('npCbasic').value) || 0;
+  customParts.push([code, hsn, cat, desc, fbasic, cbasic]);
+  LS.set('sss_custom_parts', customParts);
+  refreshParts();
+  if(!cats.includes(cat)){ cats.push(cat); cats.sort(); const o=document.createElement('option'); o.value=cat;o.textContent=cat; catFilter.appendChild(o); }
+  document.getElementById('searchInput').value = code;
+  renderPartList();
+  closeAddPartModal();
+  toast('✅ New part added');
+});
+
+/* ===================== Invoice view ===================== */
+let currentItems = []; // {code, desc, hsn, qty, rate, manual}
+let editingIndex = null;
+
+function newItem(){ return {code:'', desc:'', hsn:'', qty:1, rate:0, manual:false, taxIncl:false}; }
+
+function itemTaxable(it){
+  const gstPct = parseFloat(settings.gstRate)||18;
+  const amt = (it.qty||0)*(it.rate||0);
+  return it.taxIncl ? amt/(1+gstPct/100) : amt;
+}
+
+function addItemRow(item){
+  currentItems.push(item || newItem());
+  renderItems();
+}
+
+function computeGst(){
+  const gstOn = document.getElementById('gstToggle').value !== 'without';
+  if(!gstOn){ return { intra:false, cgst:0, sgst:0, igst:0, gstOn:false }; }
+  const seller = (settings.stateCode||'').trim();
+  const buyer = (document.getElementById('buyerState').value||'').trim();
+  const gstRate = parseFloat(settings.gstRate)||18;
+  const intra = seller && buyer && seller === buyer;
+  return { intra, cgst: intra?gstRate/2:0, sgst: intra?gstRate/2:0, igst: intra?0:gstRate, gstOn:true };
+}
+
+function renderItems(){
+  const box = document.getElementById('itemsContainer');
+  box.innerHTML = '';
+  currentItems.forEach((it, idx)=>{
+    const taxable = itemTaxable(it);
+    const div = document.createElement('div');
+    div.className = 'item-card';
+    div.innerHTML = `
+      <span class="idx">#${idx+1}</span>
+      <button class="remove" type="button" data-remove="${idx}" title="Remove">✕</button>
+      <div class="autocomplete">
+        <div class="field" style="margin-bottom:6px;">
+          <label>Search Part Code / Description (or leave blank to enter manually)</label>
+          <input type="text" class="ac-input" data-idx="${idx}" value="${esc(it.code || '')}" placeholder="Type part code or name…" autocomplete="off">
+        </div>
+        <div class="ac-results" data-idx="${idx}"></div>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>Description</label>
+        <input type="text" class="it-desc" data-idx="${idx}" value="${esc(it.desc || '')}" placeholder="Item description">
+      </div>
+      <div class="item-grid">
+        <div class="field" style="margin-bottom:0;"><label>HSN/SAC</label><input type="text" class="it-hsn" data-idx="${idx}" value="${esc(it.hsn || '')}"></div>
+        <div class="field" style="margin-bottom:0;"><label>Qty</label><input type="number" step="1" min="0" class="it-qty" data-idx="${idx}" value="${it.qty}"></div>
+        <div class="field" style="margin-bottom:0;"><label>${it.taxIncl?'Amount (with tax) ₹':'Rate ₹'}</label><input type="number" step="0.01" class="it-rate" data-idx="${idx}" value="${it.rate}"></div>
+      </div>
+      <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-dim); margin-top:8px;">
+        <input type="checkbox" class="it-taxincl" data-idx="${idx}" ${it.taxIncl?'checked':''}>
+        This amount includes tax (tax-exclusive amount will be calculated automatically)
+      </label>
+      <div class="item-line-total">Taxable Value (excl. tax): <b>₹${taxable.toFixed(2)}</b></div>
+    `;
+    box.appendChild(div);
+  });
+  renderTotals();
+}
+
+document.getElementById('addItemBtn').addEventListener('click', ()=>addItemRow());
+
+document.getElementById('itemsContainer').addEventListener('click', (e)=>{
+  const rm = e.target.closest('[data-remove]');
+  if(rm){ currentItems.splice(+rm.dataset.remove,1); renderItems(); return; }
+  const acr = e.target.closest('.ac-item');
+  if(acr){
+    const idx = +acr.dataset.idx, code = acr.dataset.code;
+    const p = findPart(code);
+    if(p){
+      currentItems[idx] = { code:p.code, desc:p.desc, hsn:p.hsn, qty: currentItems[idx].qty||1, rate:p.cbasic, manual:false };
+      renderItems();
+    }
+  }
+});
+
+document.getElementById('itemsContainer').addEventListener('input', (e)=>{
+  const t = e.target;
+  const idx = t.dataset.idx;
+  if(idx===undefined) return;
+  const i = +idx;
+  if(t.classList.contains('ac-input')){
+    currentItems[i].code = t.value;
+    const q = t.value.trim();
+    const resBox = document.querySelector(`.ac-results[data-idx="${i}"]`);
+    if(q.length < 2){ resBox.innerHTML=''; return; }
+    const matches = PARTS_CACHE.filter(p=>matchesQuery(p.code + ' ' + p.desc, q)).slice(0,15);
+    if(matches.length===0){ resBox.innerHTML=''; return; }
+    resBox.innerHTML = '<div class="ac-list">' + matches.map(m=>
+      `<div class="ac-item" data-idx="${i}" data-code="${esc(m.code)}"><span class="c mono">${esc(m.code)}</span> — ${esc(m.desc)} <span style="color:var(--text-dim)">(₹${m.cbasic})</span></div>`
+    ).join('') + '</div>';
+  } else if(t.classList.contains('it-desc')){
+    currentItems[i].desc = t.value; currentItems[i].manual = true;
+  } else if(t.classList.contains('it-hsn')){
+    currentItems[i].hsn = t.value;
+  } else if(t.classList.contains('it-qty')){
+    currentItems[i].qty = parseFloat(t.value)||0;
+    renderTotals();
+    updateLineTotal(i);
+  } else if(t.classList.contains('it-rate')){
+    currentItems[i].rate = parseFloat(t.value)||0;
+    renderTotals();
+    updateLineTotal(i);
+  }
+});
+
+document.getElementById('itemsContainer').addEventListener('change', (e)=>{
+  const t = e.target;
+  if(t.classList.contains('it-taxincl')){
+    const i = +t.dataset.idx;
+    currentItems[i].taxIncl = t.checked;
+    renderItems();
+  }
+});
+
+function updateLineTotal(i){
+  const el = document.querySelectorAll('.item-line-total b')[i];
+  if(el) el.textContent = '₹' + itemTaxable(currentItems[i]).toFixed(2);
+}
+
+// close autocomplete list on outside click
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.autocomplete')){
+    document.querySelectorAll('.ac-results').forEach(r=>r.innerHTML='');
+  }
+});
+
+function renderTotals(){
+  const gst = computeGst();
+  let rawTaxable = 0;
+  currentItems.forEach(it=>{ rawTaxable += itemTaxable(it); });
+  const discountPct = parseFloat(document.getElementById('invoiceDiscount').value)||0;
+  const discountAmt = rawTaxable * discountPct / 100;
+  const taxable = rawTaxable - discountAmt;
+  const cgstAmt = taxable*gst.cgst/100, sgstAmt = taxable*gst.sgst/100, igstAmt = taxable*gst.igst/100;
+  const grand = taxable + cgstAmt + sgstAmt + igstAmt;
+  const rounded = Math.round(grand);
+  const roundOff = rounded - grand;
+  const box = document.getElementById('invoiceTotals');
+  box.innerHTML = `
+    <div class="r"><span>Taxable Value (before discount)</span><span>₹${rawTaxable.toFixed(2)}</span></div>
+    ${discountPct>0 ? `<div class="r"><span>Discount @ ${discountPct}%</span><span>−₹${discountAmt.toFixed(2)}</span></div>
+    <div class="r"><span>Taxable Value (after discount)</span><span>₹${taxable.toFixed(2)}</span></div>` : ''}
+    ${gst.gstOn ? (gst.intra ? `<div class="r"><span>CGST @ ${gst.cgst}%</span><span>₹${cgstAmt.toFixed(2)}</span></div>
+    <div class="r"><span>SGST @ ${gst.sgst}%</span><span>₹${sgstAmt.toFixed(2)}</span></div>`
+    : `<div class="r"><span>IGST @ ${gst.igst}%</span><span>₹${igstAmt.toFixed(2)}</span></div>`) : ''}
+    <div class="r"><span>Round off</span><span>₹${roundOff.toFixed(2)}</span></div>
+    <div class="r grand"><span>Total Invoice Value</span><span>₹${rounded.toFixed(2)}</span></div>
+  `;
+  return { rawTaxable, discountPct, discountAmt, taxable, cgstAmt, sgstAmt, igstAmt, rounded, gst };
+}
+
+document.getElementById('buyerState').addEventListener('input', renderTotals);
+document.getElementById('invoiceDiscount').addEventListener('input', renderTotals);
+document.getElementById('gstToggle').addEventListener('change', renderTotals);
+
+let invoiceMode = 'normal'; // 'normal' | 'gst'
+
+function setInvoiceMode(mode){
+  invoiceMode = mode;
+  const isGst = mode === 'gst';
+  document.getElementById('gstToggleField').style.display = isGst ? 'none' : '';
+  document.getElementById('discountField').style.display = isGst ? 'none' : '';
+  if(isGst){
+    document.getElementById('gstToggle').value = 'with';
+    document.getElementById('invoiceDiscount').value = '';
+  }
+}
+
+let autoInvoiceNo = '';
+function resetInvoiceForm(){
+  document.getElementById('buyerName').value='';
+  document.getElementById('buyerMobile').value='';
+  document.getElementById('buyerAddress').value='';
+  document.getElementById('buyerGstin').value='';
+  document.getElementById('buyerState').value='06';
+  autoInvoiceNo = getAutoInvoicePrefix() + String(settings.nextNum).padStart(2, '0');
+  document.getElementById('invoiceNo').value = autoInvoiceNo;
+  document.getElementById('invoiceDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('invoiceDiscount').value = '';
+  document.getElementById('gstToggle').value = 'with';
+  document.getElementById('showTermsToggle').checked = true;
+  currentItems = [newItem()];
+  editingIndex = null;
+  document.getElementById('saveInvoiceBtn').textContent = 'Save Invoice';
+  renderItems();
+}
+
+document.getElementById('newInvoiceBtn').addEventListener('click', ()=>{
+  setInvoiceMode('normal');
+});
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+/* Save invoice */
+document.getElementById('saveInvoiceBtn').addEventListener('click', async ()=>{
+  const buyerName = document.getElementById('buyerName').value.trim();
+  if(!buyerName){ alert('Please enter the customer name.'); return; }
+  const validItems = currentItems.filter(it => (it.desc && it.desc.trim()) && (it.qty>0));
+  if(validItems.length===0){ alert('Please add at least one item.'); return; }
+
+  const saveBtn = document.getElementById('saveInvoiceBtn');
+  saveBtn.disabled = true;
+
+  const invoiceNoField = document.getElementById('invoiceNo');
+  let finalInvoiceNo = invoiceNoField.value.trim();
+  let numberWasAutoAllocated = false;
+
+  // Sequential & multi-device protection: only re-allocate atomically when the
+  // number on screen is still the auto-suggested one (i.e. user hasn't typed a custom number)
+  if(editingIndex === null && finalInvoiceNo === autoInvoiceNo){
+    saveBtn.textContent = 'Reserving number…';
+    try{
+      const allocated = await nextInvoiceNumber(invoiceMode);
+      const prefix = getAutoInvoicePrefix();
+      finalInvoiceNo = prefix + String(allocated).padStart(2, '0');
+      invoiceNoField.value = finalInvoiceNo;
+      if(invoiceMode === 'gst') settings.gstNextNum = allocated + 1;
+      else settings.nextNum = allocated + 1;
+      numberWasAutoAllocated = true;
+    }catch(e){
+      console.warn('Sequential lock unavailable, falling back to local numbering', e);
+      toast('⚠ Offline — number not multi-device protected this time');
+    }
+  }
+
+  saveBtn.textContent = 'Saving…';
+  const totals = renderTotals();
+  const inv = {
+    id: Date.now(),
+    invoiceNo: finalInvoiceNo,
+    date: document.getElementById('invoiceDate').value,
+    buyer: {
+      name: buyerName,
+      mobile: document.getElementById('buyerMobile').value,
+      address: document.getElementById('buyerAddress').value,
+      gstin: document.getElementById('buyerGstin').value,
+      stateCode: document.getElementById('buyerState').value
+    },
+    items: validItems,
+    totals,
+    type: invoiceMode,
+    showTerms: document.getElementById('showTermsToggle').checked,
+    settingsSnapshot: {...settings}
+  };
+  if(editingIndex !== null){
+    inv.id = invoices[editingIndex].id;
+    invoices[editingIndex] = inv;
+    LS.set('sss_invoices', invoices);
+    toast('✅ Invoice updated: ' + inv.invoiceNo);
+  } else {
+    invoices.unshift(inv);
+    LS.set('sss_invoices', invoices);
+    if(!numberWasAutoAllocated){
+      if(invoiceMode === 'gst'){ settings.gstNextNum = (parseInt(settings.gstNextNum)||1) + 1; }
+      else{ settings.nextNum = (parseInt(settings.nextNum)||1) + 1; }
+    }
+    LS.set('sss_settings', settings);
+    toast('✅ Invoice saved: ' + inv.invoiceNo);
+  }
+  saveBtn.disabled = false;
+  resetInvoiceForm();
+});
+
+function buildInvoiceFromForm(){
+  const totals = renderTotals();
+  return {
+    invoiceNo: document.getElementById('invoiceNo').value,
+    date: document.getElementById('invoiceDate').value,
+    buyer: {
+      name: document.getElementById('buyerName').value,
+      mobile: document.getElementById('buyerMobile').value,
+      address: document.getElementById('buyerAddress').value,
+      gstin: document.getElementById('buyerGstin').value,
+      stateCode: document.getElementById('buyerState').value
+    },
+    items: currentItems.filter(it=>it.desc && it.qty>0),
+    showTerms: document.getElementById('showTermsToggle').checked,
+    totals
+  };
+}
+
+let pendingInvoice = null;
+let pendingAction = null;
+
+function openReviewModal(action){
+  pendingInvoice = buildInvoiceFromForm();
+  pendingAction = action;
+  const list = document.getElementById('reviewItemList');
+  list.innerHTML = pendingInvoice.items.map(it => {
+    const amt = (it.qty||0)*(it.rate||0);
+    return `<div class="review-row">
+      <div class="review-desc">${esc(it.desc)}${it.code?' <span class="mono" style="color:var(--text-dim); font-weight:400;">('+esc(it.code)+')</span>':''}</div>
+      <div class="review-calc">Qty ${it.qty} &times; <span class="review-rate">₹${fmt(it.rate)}</span>${it.taxIncl?' (tax incl.)':''} = <b>₹${fmt(amt)}</b></div>
+    </div>`;
+  }).join('');
+  document.getElementById('reviewTotal').textContent = '₹' + fmt(pendingInvoice.totals.rounded);
+  document.getElementById('reviewModal').style.display = 'flex';
+}
+
+document.getElementById('reviewCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('reviewModal').style.display = 'none';
+  pendingInvoice = null; pendingAction = null;
+});
+
+document.getElementById('reviewConfirmBtn').addEventListener('click', ()=>{
+  document.getElementById('reviewModal').style.display = 'none';
+  if(pendingAction === 'print') printInvoice(pendingInvoice);
+  if(pendingAction === 'share') shareInvoice(pendingInvoice);
+  pendingInvoice = null; pendingAction = null;
+});
+
+document.getElementById('printInvoiceBtn').addEventListener('click', ()=>{
+  openReviewModal('print');
+});
+
+document.getElementById('shareInvoiceBtn').addEventListener('click', ()=>{
+  openReviewModal('share');
+});
+
+const LOGO_INALSA = 'data:image/jpeg;base64,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';
+
+function fmt(n){ return (Math.round(n*100)/100).toFixed(2); }
+
+/* Auto invoice prefix: YY-YY/MM/ based on the current date (Indian
+   financial year, April to March), so the person never has to type
+   or update a prefix by hand. Example: for September 2026 -> "26-27/09/" */
+function getAutoInvoicePrefix(){
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  const fyStart = m >= 4 ? y : y - 1;
+  const fyEnd = fyStart + 1;
+  const yy1 = String(fyStart).slice(-2);
+  const yy2 = String(fyEnd).slice(-2);
+  const mm = String(m).padStart(2, '0');
+  return `${yy1}-${yy2}/${mm}/`;
+}
+
+function invoiceHtml(inv){
+  const gst = inv.totals.gst;
+  const gstOn = gst.gstOn !== false;
+  const gstPctUsed = gstOn ? (gst.intra ? (gst.cgst + gst.sgst) : gst.igst) : 0;
+  let rows = '';
+  inv.items.forEach((it,i)=>{
+    const amt = (it.qty||0)*(it.rate||0);
+    const tax = it.taxIncl ? amt/(1+gstPctUsed/100) : amt;
+    rows += `<tr><td>${i+1}</td><td>${esc(it.desc)}${it.code?' <span style=\"color:#777\">('+esc(it.code)+')</span>':''}</td><td>${esc(it.hsn||'')}</td><td class="num">${it.qty}</td><td class="num">${fmt(it.rate)}</td><td class="num">${fmt(tax)}</td></tr>`;
+  });
+  return `
+  <div class="paper">
+    <div class="paper-content">
+    <div class="ph"><img class="ph-logo" src="${LOGO_INALSA}" alt="Inalsa"><span class="ph-title">${gstOn ? 'TAX INVOICE' : 'INVOICE'}</span></div>
+    <div style="text-align:center; font-weight:700; font-size:16px;">${esc(settings.companyName)}</div>
+    <div style="text-align:center; font-size:11px;">${esc(settings.address)}</div>
+    <div style="text-align:center; font-size:11px;">Contact: ${esc(settings.contact)} &nbsp; Email: ${esc(settings.email)}</div>
+    ${settings.serviceCenterLine ? `<div style="text-align:center; font-size:11.5px; font-weight:700; color:#C8862A; margin-top:3px; letter-spacing:0.03em;">${esc(settings.serviceCenterLine)}</div>` : ''}
+    <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-top:6px; border-top:1px solid #999; padding-top:6px;">
+      <span><b>GSTIN:</b> ${esc(settings.gstin)} &nbsp; <b>State Code:</b> ${esc(settings.stateCode)}</span>
+      <span><b>PAN:</b> ${esc(settings.pan)}</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-top:8px;">
+      <div>
+        <b>Billing To:</b><br>
+        ${esc(inv.buyer.name)}<br>
+        ${esc(inv.buyer.address)}<br>
+        ${inv.buyer.mobile ? 'Mobile: '+esc(inv.buyer.mobile)+'<br>' : ''}
+        GSTIN: ${esc(inv.buyer.gstin)} &nbsp; State Code: ${esc(inv.buyer.stateCode)}
+      </div>
+      <div style="text-align:right;">
+        <b>Invoice No:</b> ${esc(inv.invoiceNo)}<br>
+        <b>Date:</b> ${esc(inv.date)}
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Sr</th><th>Description</th><th>HSN</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Taxable</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr class="totalrow"><td colspan="5" class="num">Taxable Value${(inv.totals.discountPct>0) ? ' (before discount)' : ''}</td><td class="num">${fmt(inv.totals.rawTaxable ?? inv.totals.taxable)}</td></tr>
+        ${(inv.totals.discountPct>0) ? `<tr><td colspan="5" class="num">Discount @ ${inv.totals.discountPct}%</td><td class="num">−${fmt(inv.totals.discountAmt)}</td></tr>
+        <tr class="totalrow"><td colspan="5" class="num">Taxable Value (after discount)</td><td class="num">${fmt(inv.totals.taxable)}</td></tr>` : ''}
+        ${gstOn ? (gst.intra ? `<tr><td colspan="5" class="num">CGST @ ${gst.cgst}%</td><td class="num">${fmt(inv.totals.cgstAmt)}</td></tr>
+        <tr><td colspan="5" class="num">SGST @ ${gst.sgst}%</td><td class="num">${fmt(inv.totals.sgstAmt)}</td></tr>`
+        : `<tr><td colspan="5" class="num">IGST @ ${gst.igst}%</td><td class="num">${fmt(inv.totals.igstAmt)}</td></tr>`) : ''}
+        <tr class="totalrow"><td colspan="5" class="num">TOTAL INVOICE VALUE</td><td class="num">₹${fmt(inv.totals.rounded)}</td></tr>
+      </tfoot>
+    </table>
+    ${inv.showTerms !== false ? `<div style="margin-top:14px; font-size:10px; color:#555; border-top:1px dashed #bbb; padding-top:6px; line-height:1.5;">
+      <b>Terms &amp; Conditions:</b> Spare parts carry a warranty of 3 months from the date of this invoice. Service charges are valid for a period of 1 month from the date of service. Warranty is applicable only against manufacturing defects and does not cover physical damage, misuse, or issues arising from unauthorised repairs.
+    </div>` : ''}
+    <div style="margin-top:14px; display:flex; justify-content:flex-end; align-items:flex-end; gap:12px;">
+      <div style="text-align:center;">For ${esc(settings.companyName)}<br>${getSignature() ? '<img src="'+getSignature()+'" style="max-height:55px; max-width:160px; display:block; margin:4px auto;">' : '<br><br><br>'}Authorised Signatory</div>
+    </div>
+    </div>
+  </div>`;
+}
+
+let _libsPromise = null;
+function ensurePdfLibs(){
+  if(window.html2canvas && window.jspdf) return Promise.resolve();
+  if(_libsPromise) return _libsPromise;
+  function loadScript(src){
+    return new Promise((resolve, reject)=>{
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = ()=>reject(new Error('Failed to load '+src));
+      document.head.appendChild(s);
+    });
+  }
+  _libsPromise = Promise.all([
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+  ]).catch((err)=>{ _libsPromise = null; throw err; });
+  return _libsPromise;
+}
+
+function buildInvoicePdf(inv){
+  const html = invoiceHtml(inv);
+  let holder = document.getElementById('pdfRenderHolder');
+  if(!holder){
+    holder = document.createElement('div');
+    holder.id = 'pdfRenderHolder';
+    holder.style.position = 'fixed';
+    holder.style.left = '-9999px';
+    holder.style.top = '0';
+    holder.style.width = '750px';
+    holder.style.background = '#fff';
+    document.body.appendChild(holder);
+  }
+  holder.innerHTML = html;
+  return ensurePdfLibs().then(() => html2canvas(holder, { scale: 2, backgroundColor: '#ffffff' })).then((canvas) => {
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4', true);
+    const pageWidth = 210, pageHeight = 297;
+    const margin = 8;
+    const usableWidth = pageWidth - margin * 2;
+    const imgHeightMM = (canvas.height * usableWidth) / canvas.width;
+    let heightLeft = imgHeightMM;
+    let position = margin;
+    pdf.addImage(imgData, 'JPEG', margin, position, usableWidth, imgHeightMM, undefined, 'FAST');
+    heightLeft -= (pageHeight - margin * 2);
+    while(heightLeft > 0){
+      position = heightLeft - imgHeightMM + margin;
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', margin, position, usableWidth, imgHeightMM, undefined, 'FAST');
+      heightLeft -= (pageHeight - margin * 2);
+    }
+    return pdf;
+  });
+}
+
+function printInvoice(inv){
+  toast('Preparing PDF…');
+  buildInvoicePdf(inv).then((pdf) => {
+    pdf.save('Invoice-' + (inv.invoiceNo || 'draft') + '.pdf');
+  }).catch(() => {
+    alert('There was a problem creating the PDF. Please check your internet connection and try again.');
+  });
+}
+
+let currentlyViewedInvoice = null;
+
+function viewInvoicePdf(inv){
+  currentlyViewedInvoice = inv;
+  document.getElementById('pdfViewFrame').innerHTML = invoiceHtml(inv);
+  document.getElementById('pdfViewTitle').textContent = 'Invoice ' + (inv.invoiceNo || '');
+  document.getElementById('pdfViewModal').style.display = 'flex';
+  history.pushState({view: currentViewName, modal:true}, '', location.pathname + location.search);
+}
+
+function closePdfViewModal(){
+  document.getElementById('pdfViewModal').style.display = 'none';
+  document.getElementById('pdfViewFrame').innerHTML = '';
+  currentlyViewedInvoice = null;
+}
+
+document.getElementById('pdfViewCloseBtn').addEventListener('click', ()=>{
+  if(history.state && history.state.modal){ history.back(); } else { closePdfViewModal(); }
+});
+
+document.getElementById('pdfViewShareBtn').addEventListener('click', ()=>{
+  if(currentlyViewedInvoice) shareInvoice(currentlyViewedInvoice);
+});
+
+function shareInvoice(inv){
+  toast('Preparing PDF…');
+  buildInvoicePdf(inv).then((pdf) => {
+    const blob = pdf.output('blob');
+    const fileName = 'Invoice-' + (inv.invoiceNo || 'draft') + '.pdf';
+    const file = new File([blob], fileName, { type: 'application/pdf' });
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      navigator.share({
+        files: [file],
+        title: 'Invoice ' + (inv.invoiceNo || ''),
+        text: 'Invoice ' + (inv.invoiceNo || '') + ' - ' + settings.companyName
+      }).catch(() => {});
+    } else {
+      alert('Direct share is not supported on this device. Use "Download PDF" and attach it manually via WhatsApp.');
+      pdf.save(fileName);
+    }
+  }).catch(() => {
+    alert('There was a problem creating the PDF. Please check your internet connection and try again.');
+  });
+}
+
+/* ===================== History view ===================== */
+let historyFilter = 'all';
+let historySearchQuery = '';
+
+function invoiceTypeOf(inv){
+  if(inv.type === 'gst' || inv.type === 'normal') return inv.type;
+  return (settings.gstPrefix && (inv.invoiceNo||'').indexOf(settings.gstPrefix) === 0) ? 'gst' : 'normal';
+}
+
+function invoiceMatchesSearch(inv, q){
+  if(!q) return true;
+  const haystackParts = [inv.buyer.name, inv.buyer.mobile, inv.invoiceNo]
+    .concat((inv.items||[]).map(it=>it.desc));
+  return matchesQuery(haystackParts.join(' '), q);
+}
+
+function renderHistorySummary(filtered){
+  const now = new Date();
+  const ym = now.toISOString().slice(0,7); // 'YYYY-MM'
+  const thisMonth = filtered.filter(({inv}) => (inv.date||'').slice(0,7) === ym);
+  const total = thisMonth.reduce((s,{inv}) => s + (inv.totals.rounded||0), 0);
+  document.getElementById('histSummaryAmt').textContent = '₹' + fmt(total);
+  document.getElementById('histSummaryCount').textContent = thisMonth.length + ' invoice' + (thisMonth.length===1?'':'s') + ' this month';
+}
+
+function renderHistory(){
+  const box = document.getElementById('historyList');
+  const q = historySearchQuery.trim();
+  const filtered = [];
+  invoices.forEach((inv, idx)=>{
+    const typeOk = historyFilter==='all' || invoiceTypeOf(inv)===historyFilter;
+    if(typeOk && invoiceMatchesSearch(inv, q)) filtered.push({inv, idx});
+  });
+  renderHistorySummary(invoices.map((inv,idx)=>({inv,idx})));
+  if(invoices.length===0){
+    box.innerHTML = '<div class="empty"><div class="ic">🧾</div>No invoices saved yet.</div>';
+    return;
+  }
+  if(filtered.length===0){
+    box.innerHTML = '<div class="empty"><div class="ic">🔍</div>No invoices match your search.</div>';
+    return;
+  }
+  box.innerHTML = '';
+  filtered.forEach(({inv, idx})=>{
+    const type = invoiceTypeOf(inv);
+    const badge = type==='gst' ? '<span class="hist-badge gst">GST Invoice</span>' : '<span class="hist-badge normal">Invoice</span>';
+    const div = document.createElement('div');
+    div.className = 'hist-row';
+    div.innerHTML = `
+      <div class="top"><span>${esc(inv.invoiceNo)}${badge}</span><span>${esc(inv.date)}</span></div>
+      <div class="sub">${esc(inv.buyer.name)}${inv.buyer.mobile ? ' · '+esc(inv.buyer.mobile) : ''}</div>
+      <div class="amt">₹${fmt(inv.totals.rounded)}</div>
+      <div class="hist-actions">
+        <button class="btn btn-outline" data-view="${idx}">👁 View</button>
+        <button class="btn btn-outline" data-edit="${idx}">✏️ Edit</button>
+        <button class="btn btn-danger" data-del="${idx}">Delete</button>
+      </div>`;
+    box.appendChild(div);
+  });
+}
+
+document.getElementById('historySearch').addEventListener('input', (e)=>{
+  historySearchQuery = e.target.value;
+  renderHistory();
+});
+
+document.getElementById('historyFilter').addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-filter]');
+  if(!btn) return;
+  historyFilter = btn.dataset.filter;
+  document.querySelectorAll('.hist-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistory();
+});
+
+document.getElementById('historyList').addEventListener('click', (e)=>{
+  const vb = e.target.closest('[data-view]');
+  if(vb){ viewInvoicePdf(invoices[+vb.dataset.view]); return; }
+  const eb = e.target.closest('[data-edit]');
+  if(eb){ loadInvoiceForEdit(+eb.dataset.edit); return; }
+  const pb = e.target.closest('[data-print]');
+  if(pb){ printInvoice(invoices[+pb.dataset.print]); return; }
+  const sb = e.target.closest('[data-share]');
+  if(sb){ shareInvoice(invoices[+sb.dataset.share]); return; }
+  const db = e.target.closest('[data-del]');
+  if(db){
+    if(confirm('Delete this invoice?')){
+      invoices.splice(+db.dataset.del,1);
+      LS.set('sss_invoices', invoices);
+      renderHistory();
+    }
+  }
+});
+
+function loadInvoiceForEdit(idx){
+  const inv = invoices[idx];
+  if(!inv) return;
+  editingIndex = idx;
+  const looksLikeGst = settings.gstPrefix && (inv.invoiceNo||'').indexOf(settings.gstPrefix) === 0;
+  setInvoiceMode(looksLikeGst ? 'gst' : 'normal');
+  document.getElementById('buyerName').value = inv.buyer.name || '';
+  document.getElementById('buyerMobile').value = inv.buyer.mobile || '';
+  document.getElementById('buyerAddress').value = inv.buyer.address || '';
+  document.getElementById('buyerGstin').value = inv.buyer.gstin || '';
+  document.getElementById('buyerState').value = inv.buyer.stateCode || '06';
+  document.getElementById('invoiceNo').value = inv.invoiceNo || '';
+  document.getElementById('invoiceDate').value = inv.date || '';
+  document.getElementById('invoiceDiscount').value = inv.totals.discountPct || '';
+  document.getElementById('gstToggle').value = (inv.totals.gst && inv.totals.gst.gstOn===false) ? 'without' : 'with';
+  document.getElementById('showTermsToggle').checked = inv.showTerms !== false;
+  currentItems = inv.items.map(it => ({...it}));
+  renderItems();
+  document.getElementById('saveInvoiceBtn').textContent = 'Update Invoice';
+  switchToView('invoice', document.getElementById('newInvoiceBtn'));
+  toast('Editing invoice ' + inv.invoiceNo);
+}
+
+/* ===================== Settings view ===================== */
+function loadSettingsForm(){
+  document.getElementById('setCompanyName').value = settings.companyName;
+  document.getElementById('setAddress').value = settings.address;
+  document.getElementById('setContact').value = settings.contact;
+  document.getElementById('setEmail').value = settings.email;
+  document.getElementById('setGstin').value = settings.gstin;
+  document.getElementById('setState').value = settings.stateCode;
+  document.getElementById('setPan').value = settings.pan;
+  document.getElementById('setGstRate').value = settings.gstRate;
+  document.getElementById('setServiceCenterLine').value = settings.serviceCenterLine || '';
+  document.getElementById('setNextNum').value = settings.nextNum;
+  document.getElementById('prefixPreview').textContent = getAutoInvoicePrefix();
+  updateSignaturePreview();
+}
+
+function updateSignaturePreview(){
+  const box = document.getElementById('signaturePreviewBox');
+  const img = document.getElementById('signaturePreviewImg');
+  const sig = getSignature();
+  if(sig){
+    img.src = sig;
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+document.getElementById('uploadSignBtn').addEventListener('click', ()=>document.getElementById('signFile').click());
+document.getElementById('signFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    settings.signatureImage = ev.target.result;
+    LS.set('sss_settings', settings);
+    updateSignaturePreview();
+    toast('Signature saved');
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('removeSignBtn').addEventListener('click', ()=>{
+  settings.signatureImage = '';
+  LS.set('sss_settings', settings);
+  updateSignaturePreview();
+  toast('Signature removed');
+});
+
+document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
+  settings = {
+    companyName: document.getElementById('setCompanyName').value,
+    address: document.getElementById('setAddress').value,
+    contact: document.getElementById('setContact').value,
+    email: document.getElementById('setEmail').value,
+    gstin: document.getElementById('setGstin').value,
+    stateCode: document.getElementById('setState').value,
+    pan: document.getElementById('setPan').value,
+    gstRate: parseFloat(document.getElementById('setGstRate').value)||18,
+    serviceCenterLine: document.getElementById('setServiceCenterLine').value,
+    nextNum: parseInt(document.getElementById('setNextNum').value)||1,
+    signatureImage: settings.signatureImage
+  };
+  LS.set('sss_settings', settings);
+  toast('Settings saved');
+});
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const data = { settings, overrides, customParts, invoices, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sss-invoice-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+});
+
+document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(data.settings) settings = data.settings;
+      if(data.overrides) overrides = data.overrides;
+      if(data.customParts) customParts = data.customParts;
+      if(data.invoices) invoices = data.invoices;
+      LS.set('sss_settings', settings); LS.set('sss_price_overrides', overrides);
+      LS.set('sss_custom_parts', customParts); LS.set('sss_invoices', invoices);
+      refreshParts(); renderPartList(); loadSettingsForm();
+      toast('Data restored');
+    }catch(err){ alert('Error reading file.'); }
+  };
+  reader.readAsText(file);
+});
+
+/* ---- Fully offline invoice numbering ----
+   Simply reads the next number from local settings; no network,
+   no cloud, no cross-device sync. Each device keeps its own counter. */
+function nextInvoiceNumber(mode){
+  const localNext = mode === 'gst' ? (parseInt(settings.gstNextNum)||1) : (parseInt(settings.nextNum)||1);
+  return Promise.resolve(localNext);
+}
+
+/* ===================== Init ===================== */
+renderPartList();
+resetInvoiceForm();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
