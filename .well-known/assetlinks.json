@@ -1,1 +1,8 @@
-
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.santservicenoida_ux.twa",
+        "sha256_cert_fingerprints": ["16:7F:93:3B:A3:FC:BD:0E:CC:A6:71:F2:E3:B4:24:F4:FD:EC:51:50:D7:09:90:B4:44:1E:EA:17:40:97:C1:09"]
+      }
+    }]
